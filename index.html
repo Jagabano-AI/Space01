@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#050812" />
+  <title>SPACE1 REBORN</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-synthesis: none; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; background: #03050b; color: #eef6ff; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+    .menu-shell { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; padding: 28px; background: linear-gradient(90deg, rgba(3,5,12,.93) 0%, rgba(3,5,12,.78) 42%, rgba(3,5,12,.16) 100%), radial-gradient(ellipse at 17% 50%, rgba(21,67,103,.23), transparent 55%); }
+    .menu-shell[hidden], .game-hud[hidden] { display: none; }
+    .menu-shell::before { content: ""; position: absolute; inset: 22px; border: 1px solid rgba(106,190,255,.12); pointer-events: none; clip-path: polygon(0 0, 22% 0, 22% 1px, 78% 1px, 78% 0, 100% 0, 100% 25%, calc(100% - 1px) 25%, calc(100% - 1px) 75%, 100% 75%, 100% 100%, 78% 100%, 78% calc(100% - 1px), 22% calc(100% - 1px), 22% 100%, 0 100%, 0 75%, 1px 75%, 1px 25%, 0 25%); }
+    .menu-layout { position: relative; width: min(1080px, 100%); min-height: min(650px, calc(100vh - 56px)); display: grid; grid-template-columns: minmax(250px, .85fr) minmax(320px, 1fr); align-items: center; gap: clamp(36px, 9vw, 130px); }
+    .brand { align-self: center; }
+    .eyebrow { display: flex; align-items: center; gap: 11px; color: #72dfff; font-size: 10px; font-weight: 800; letter-spacing: .29em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 25px; height: 1px; background: #4de1ff; box-shadow: 0 0 12px #4de1ff; }
+    .brand h1 { margin: 19px 0 0; font-size: clamp(48px, 8vw, 92px); line-height: .82; letter-spacing: -.085em; font-weight: 900; }
+    .brand h1 span { display: block; color: #4de1ff; text-shadow: 0 0 30px rgba(77,225,255,.32); }
+    .brand-copy { max-width: 300px; margin: 24px 0 0; color: #91a2b9; font-size: 13px; line-height: 1.8; }
+    .brand-meta { display: flex; gap: 20px; margin-top: 48px; color: #51647c; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
+    .brand-meta span::before { content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 8px 1px 0; background: #4de1ff; transform: rotate(45deg); }
+    .menu-panel { width: 100%; max-width: 440px; justify-self: end; padding: clamp(24px, 4vw, 42px); background: linear-gradient(145deg, rgba(13,22,38,.88), rgba(5,10,20,.82)); border: 1px solid rgba(123,178,224,.19); box-shadow: 0 24px 90px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.035); backdrop-filter: blur(16px); clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
+    .panel-kicker { margin: 0 0 8px; color: #4de1ff; font-size: 9px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+    .panel-title { margin: 0; font-size: clamp(23px, 3vw, 30px); letter-spacing: -.04em; font-weight: 750; }
+    .panel-description { margin: 10px 0 26px; color: #8091a8; font-size: 12px; line-height: 1.7; }
+    .menu-actions { display: grid; gap: 9px; }
+    button { font: inherit; }
+    .menu-button { position: relative; display: flex; width: 100%; min-height: 51px; align-items: center; justify-content: space-between; padding: 0 17px; border: 1px solid rgba(121,155,194,.15); background: rgba(17,29,47,.57); color: #c8d5e6; text-align: left; font-size: 11px; font-weight: 750; letter-spacing: .1em; cursor: pointer; transition: .18s ease; }
+    .menu-button span:last-child { color: #6a819d; font-size: 15px; transition: transform .18s ease, color .18s ease; }
+    .menu-button:hover, .menu-button:focus-visible { outline: none; border-color: rgba(77,225,255,.56); background: rgba(31,61,84,.62); color: #fff; transform: translateX(3px); }
+    .menu-button:hover span:last-child { color: #4de1ff; transform: translateX(3px); }
+    .menu-button.primary { min-height: 57px; margin-bottom: 6px; border-color: #4de1ff; background: #4de1ff; color: #03101a; box-shadow: 0 0 28px rgba(77,225,255,.18); }
+    .menu-button.primary span:last-child { color: #06304a; }
+    .menu-button.primary:hover, .menu-button.primary:focus-visible { background: #a0f1ff; border-color: #a0f1ff; box-shadow: 0 0 34px rgba(77,225,255,.34); }
+    .menu-button.exit { color: #8994a5; }
+    .panel-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 23px; padding-top: 15px; border-top: 1px solid rgba(135,164,196,.1); color: #566a82; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .back-button { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 22px; padding: 0; border: 0; background: none; color: #8397af; font-size: 10px; font-weight: 700; letter-spacing: .14em; cursor: pointer; }
+    .back-button:hover, .back-button:focus-visible { color: #4de1ff; outline: none; }
+    .setting-row { display: grid; gap: 10px; margin-top: 22px; }
+    .setting-label { display: flex; justify-content: space-between; gap: 12px; color: #b9c9dc; font-size: 11px; font-weight: 650; letter-spacing: .04em; }
+    .setting-label output { color: #4de1ff; font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: #4de1ff; cursor: pointer; }
+    .segmented { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .choice-button { min-height: 42px; border: 1px solid rgba(121,155,194,.2); background: rgba(17,29,47,.55); color: #91a2b9; font-size: 10px; font-weight: 700; letter-spacing: .1em; cursor: pointer; }
+    .choice-button[aria-pressed="true"] { border-color: #4de1ff; color: #4de1ff; background: rgba(77,225,255,.09); }
+    .swatches { display: flex; gap: 12px; padding: 5px 0; }
+    .swatch { width: 34px; height: 34px; border: 2px solid transparent; background: var(--swatch); transform: rotate(45deg) scale(.8); cursor: pointer; box-shadow: 0 0 18px color-mix(in srgb, var(--swatch) 45%, transparent); }
+    .swatch[aria-pressed="true"] { outline: 1px solid var(--swatch); outline-offset: 4px; }
+    .swatch:focus-visible { outline: 1px solid white; outline-offset: 4px; }
+    .howto-list { display: grid; gap: 13px; margin: 22px 0 0; padding: 0; list-style: none; }
+    .howto-list li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; color: #91a2b9; font-size: 11px; line-height: 1.65; }
+    .howto-list strong { color: #dce8f7; }
+    .step-number { color: #4de1ff; font-size: 10px; font-weight: 800; }
+    .exit-mark { margin: 22px 0; color: #4de1ff; font-size: 30px; }
+    .game-hud { position: fixed; z-index: 1; top: 20px; right: 22px; display: flex; align-items: center; gap: 14px; }
+    .hud-readout { padding: 10px 13px; border: 1px solid rgba(123,178,224,.16); background: rgba(4,9,18,.72); color: #a9bfd6; font-size: 10px; letter-spacing: .08em; backdrop-filter: blur(8px); }
+    .leaderboard { position: fixed; z-index: 1; top: 78px; right: 22px; width: 238px; padding: 9px 11px; border: 1px solid rgba(123,178,224,.22); background: rgba(4,9,18,.76); color: #a9bfd6; font-size: 10px; backdrop-filter: blur(10px); }
+    .leaderboard table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .leaderboard th { padding: 3px 2px 7px; color: #6f8ca7; font-size: 8px; font-weight: 750; letter-spacing: .12em; text-align: left; }
+    .leaderboard th:last-child, .leaderboard td:last-child { text-align: right; }
+    .leaderboard td { padding: 5px 2px; border-top: 1px solid rgba(123,178,224,.1); }
+    .leaderboard td:first-child { width: 22px; color: #6f8ca7; }
+    .leaderboard td:last-child { color: #d4e6f4; }
+    .leaderboard tr.is-player td { color: #69e8ff; font-weight: 800; }
+    .formation-notice { position: fixed; z-index: 1; top: 22%; left: 50%; padding: 11px 17px; border: 1px solid rgba(77,225,255,.48); background: rgba(4,9,18,.82); color: #a8f3ff; font-size: 11px; font-weight: 800; letter-spacing: .12em; transform: translateX(-50%); pointer-events: none; }
+    .formation-notice[hidden] { display: none; }
+    .reward-notice { position: fixed; z-index: 1; top: calc(22% + 48px); left: 50%; padding: 9px 13px; border: 1px solid rgba(125,255,210,.44); background: rgba(4,15,15,.84); color: #a9ffdc; font-size: 10px; font-weight: 750; letter-spacing: .08em; transform: translateX(-50%); pointer-events: none; }
+    .reward-notice[hidden] { display: none; }
+    .hud-menu { min-height: 38px; padding: 0 14px; border: 1px solid rgba(77,225,255,.52); background: rgba(4,9,18,.78); color: #77e9ff; font-size: 10px; font-weight: 750; letter-spacing: .11em; cursor: pointer; }
+    .hud-menu:hover, .hud-menu:focus-visible { outline: none; background: rgba(77,225,255,.15); }
+    @media (max-width: 700px) {
+      .menu-shell { padding: 18px; background: linear-gradient(180deg, rgba(3,5,12,.65), rgba(3,5,12,.93) 35%, rgba(3,5,12,.95)); }
+      .menu-shell::before { inset: 10px; }
+      .menu-layout { min-height: calc(100vh - 36px); grid-template-columns: 1fr; gap: 22px; align-content: center; }
+      .brand h1 { margin-top: 12px; font-size: clamp(48px, 15vw, 70px); }
+      .brand-copy { display: none; }
+      .brand-meta { margin-top: 14px; }
+      .menu-panel { justify-self: stretch; max-width: none; padding: 23px; }
+      .panel-description { margin-bottom: 18px; }
+      .menu-button { min-height: 45px; }
+      .menu-button.primary { min-height: 51px; }
+      .panel-footer { margin-top: 16px; }
+      .game-hud { top: 10px; right: 10px; gap: 7px; }
+      .hud-readout { max-width: calc(100vw - 90px); overflow: visible; white-space: normal; line-height: 1.6; }
+      .leaderboard { top: 100px; right: 10px; width: 180px; padding: 7px 9px; font-size: 9px; }
+    }
+    @media (max-height: 650px) and (min-width: 701px) { .menu-layout { min-height: calc(100vh - 42px); gap: 6vw; }.brand-meta { margin-top: 25px; }.menu-panel { padding: 25px 30px; }.panel-description { margin-bottom: 17px; }.menu-button { min-height: 44px; } }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Campo de juego espacial"></canvas>
+  <div id="game-hud" class="game-hud" hidden>
+    <div id="hud-readout" class="hud-readout" aria-live="polite"></div>
+    <button id="hud-menu" class="hud-menu" type="button">MENÚ <span aria-hidden="true">↗</span></button>
+    <div id="formation-notice" class="formation-notice" aria-live="polite" hidden></div>
+    <div id="reward-notice" class="reward-notice" aria-live="polite" hidden></div>
+    <section class="leaderboard" aria-label="Clasificación de flotas">
+      <table>
+        <thead><tr><th>#</th><th>FLOTA</th><th>PTS</th></tr></thead>
+        <tbody id="leaderboard-rows"></tbody>
+      </table>
+    </section>
+  </div>
+  <main id="menu-shell" class="menu-shell" aria-label="Menú del juego">
+    <div class="menu-layout">
+      <header class="brand">
+        <div class="eyebrow">Simulación de flota · Fase 01</div>
+        <h1>SPACE1<span>REBORN</span></h1>
+        <p class="brand-copy">Una flota. Un sector desconocido. Traza tu rumbo y conquista el vacío.</p>
+        <div class="brand-meta"><span>Sector 01</span><span>En línea</span></div>
+      </header>
+      <section class="menu-panel" aria-live="polite">
+        <div id="screen-main" data-screen-panel>
+          <p class="panel-kicker">Sistema listo</p>
+          <h2 class="panel-title">Centro de mando</h2>
+          <p class="panel-description">Selecciona una operación para continuar.</p>
+          <nav class="menu-actions" aria-label="Opciones principales">
+            <button class="menu-button primary" type="button" data-action="play"><span>JUGAR</span><span aria-hidden="true">↗</span></button>
+            <button class="menu-button" type="button" data-action="customize"><span>PERSONALIZAR NAVE</span><span aria-hidden="true">◇</span></button>
+            <button class="menu-button" type="button" data-action="settings"><span>CONFIGURACIÓN</span><span aria-hidden="true">⌘</span></button>
+            <button class="menu-button" type="button" data-action="howto"><span>CÓMO JUGAR</span><span aria-hidden="true">?</span></button>
+            <button class="menu-button exit" type="button" data-action="exit"><span>SALIR</span><span aria-hidden="true">↗</span></button>
+          </nav>
+          <div class="panel-footer"><span>SPACE1 REBORN</span><span>v0.1 · FASE 1</span></div>
+        </div>
+        <div id="screen-customize" data-screen-panel hidden>
+          <button class="back-button" type="button" data-action="back"><span aria-hidden="true">←</span> CENTRO DE MANDO</button>
+          <p class="panel-kicker">Hangar · Apariencia</p>
+          <h2 class="panel-title">Personalizar nave</h2>
+          <p class="panel-description">Elige el color de identificación de tu escuadrón. La líder y sus escoltas comparten el color; la nave líder conserva su señal dorada.</p>
+          <div class="setting-row">
+            <div class="setting-label"><span>Color de la flota</span><output id="color-name">Cian</output></div>
+            <div class="swatches" role="group" aria-label="Color de la flota">
+              <button class="swatch" type="button" style="--swatch:#4de1ff" data-color="#4de1ff" data-name="Cian" aria-label="Cian" aria-pressed="true"></button>
+              <button class="swatch" type="button" style="--swatch:#a78bfa" data-color="#a78bfa" data-name="Violeta" aria-label="Violeta" aria-pressed="false"></button>
+              <button class="swatch" type="button" style="--swatch:#6dffb3" data-color="#6dffb3" data-name="Esmeralda" aria-label="Esmeralda" aria-pressed="false"></button>
+              <button class="swatch" type="button" style="--swatch:#ffbd66" data-color="#ffbd66" data-name="Ámbar" aria-label="Ámbar" aria-pressed="false"></button>
+              <button class="swatch" type="button" style="--swatch:#ff6f91" data-color="#ff6f91" data-name="Coral" aria-label="Coral" aria-pressed="false"></button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label"><span>Composición inicial</span><output>01 + 02</output></div>
+            <p class="panel-description">Una nave líder protegida por dos escoltas. Destruye asteroides para obtener energía y ampliar la formación de forma progresiva.</p>
+          </div>
+          <div class="panel-footer"><span>CAMBIOS GUARDADOS AUTOMÁTICAMENTE</span></div>
+        </div>
+        <div id="screen-settings" data-screen-panel hidden>
+          <button class="back-button" type="button" data-action="back"><span aria-hidden="true">←</span> CENTRO DE MANDO</button>
+          <p class="panel-kicker">Sistema · Preferencias</p>
+          <h2 class="panel-title">Configuración</h2>
+          <p class="panel-description">Ajusta el campo de estrellas y la respuesta de dirección a tu gusto.</p>
+          <div class="setting-row">
+            <div class="setting-label"><span>Calidad del campo estelar</span></div>
+            <div class="segmented" role="group" aria-label="Calidad del campo estelar">
+              <button class="choice-button" type="button" data-quality="low" aria-pressed="false">ECONÓMICA</button>
+              <button class="choice-button" type="button" data-quality="high" aria-pressed="true">ALTA</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label class="setting-label" for="sensitivity"><span>Respuesta del control</span><output id="sensitivity-value" for="sensitivity">100%</output></label>
+            <input id="sensitivity" type="range" min="50" max="150" step="10" value="100" />
+          </div>
+          <div class="panel-footer"><span>LAS PREFERENCIAS SE GUARDAN EN ESTE DISPOSITIVO</span></div>
+        </div>
+        <div id="screen-howto" data-screen-panel hidden>
+          <button class="back-button" type="button" data-action="back"><span aria-hidden="true">←</span> CENTRO DE MANDO</button>
+          <p class="panel-kicker">Briefing · Controles</p>
+          <h2 class="panel-title">Cómo jugar</h2>
+          <p class="panel-description">Guía a tu nave líder, conserva escoltas y supera a los bots rivales.</p>
+          <ol class="howto-list">
+            <li><span class="step-number">01</span><span><strong>Mueve el cursor</strong> para indicar rumbo. Cuanto más lejos del centro de la flota, más aceleras. Mantén el botón izquierdo para disparar.</span></li>
+            <li><span class="step-number">02</span><span><strong>Acerca el cursor</strong> al centro para frenar. La flota gira y mantiene su formación.</span></li>
+            <li><span class="step-number">03</span><span><strong>Protege la nave líder.</strong> Las escoltas reciben el daño primero; si la líder pierde toda su salud, termina la partida.</span></li>
+            <li><span class="step-number">04</span><span><strong>Mantén el botón izquierdo:</strong> líder y escoltas disparan ráfagas con pausa. Los asteroides reaparecen en tamaños variables: pequeño +1 nave, mediano +2 y grande +3; también entregan energía.</span></li>
+            <li><span class="step-number">05</span><span><strong>Evita los asteroides al volar:</strong> tienen colisión física. La líder y las escoltas disparan solo mientras mantienes el botón izquierdo y haya un objetivo delante.</span></li>
+            <li><span class="step-number">06</span><span><strong>Cambia la formación:</strong> el botón central recorre neutral, ataque y defensa; 1, 2 y 3 seleccionan cada formación. Captura escoltas con algunos impactos. Los bots crecen, cazan rivales y compiten en la clasificación.</span></li>
+            <li><span class="step-number">07</span><span><strong>Esc o MENÚ</strong> para detener y volver al centro de mando.</span></li>
+          </ol>
+          <div class="panel-footer"><span>BUEN VIAJE, COMANDANTE</span></div>
+        </div>
+        <div id="screen-exit" data-screen-panel hidden>
+          <button class="back-button" type="button" data-action="back"><span aria-hidden="true">←</span> CENTRO DE MANDO</button>
+          <p class="panel-kicker">Desconexión</p>
+          <h2 class="panel-title">¿Fin de la misión?</h2>
+          <p class="panel-description">La sesión está detenida. Puedes cerrar esta pestaña para salir del juego o volver al centro de mando cuando quieras.</p>
+          <div class="exit-mark" aria-hidden="true">◇</div>
+          <div class="menu-actions">
+            <button class="menu-button primary" type="button" data-action="close"><span>CERRAR JUEGO</span><span aria-hidden="true">↗</span></button>
+            <button class="menu-button" type="button" data-action="back"><span>VOLVER AL MENÚ</span><span aria-hidden="true">←</span></button>
+          </div>
+          <div class="panel-footer"><span>SESIÓN PAUSADA</span></div>
+        </div>
+        <div id="screen-gameover" data-screen-panel hidden>
+          <p class="panel-kicker">Señal de mando perdida</p>
+          <h2 class="panel-title">Líder destruida</h2>
+          <p class="panel-description">La nave líder ha sido neutralizada. Sin ella, la flota no puede continuar la misión.</p>
+          <div class="exit-mark" aria-hidden="true">✦</div>
+          <div class="menu-actions">
+            <button class="menu-button primary" type="button" data-action="restart"><span>REINTENTAR MISIÓN</span><span aria-hidden="true">↻</span></button>
+            <button class="menu-button" type="button" data-action="back"><span>CENTRO DE MANDO</span><span aria-hidden="true">←</span></button>
+          </div>
+          <div class="panel-footer"><span>PARTIDA FINALIZADA</span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/src/client/main.ts"></script>
+</body>
+</html>
